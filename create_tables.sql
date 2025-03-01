@@ -1,64 +1,62 @@
 
 /*
-DROP TABLE Category CASCADE;
-DROP TABLE Customer CASCADE;
+DROP TABLE Cliente CASCADE;
+DROP TABLE Categoria CASCADE;
 DROP TABLE Item CASCADE;
-DROP TABLE "Order" CASCADE;
-DROP TABLE Order_Item CASCADE;
-DROP TABLE Item_History CASCADE;
+DROP TABLE Item_Diario CASCADE;
+DROP TABLE Pedido CASCADE;
 */
 
 
-
-
-
-
-
--- Criando tabelas
-CREATE TABLE Category (
-    category_id SERIAL PRIMARY KEY,
-    name VARCHAR(255) NOT NULL,
-    path TEXT NOT NULL
+-- Tabela Cliente
+CREATE TABLE Cliente (
+    cliente_id SERIAL PRIMARY KEY,
+    email VARCHAR(100) NOT NULL UNIQUE,
+    nome VARCHAR(50) NOT NULL,
+    sobrenome VARCHAR(50) NOT NULL,
+    sexo CHAR(1),
+    endereco VARCHAR(200),
+    data_nascimento DATE,
+    telefone VARCHAR(15)
 );
 
-CREATE TABLE Customer (
-    customer_id SERIAL PRIMARY KEY,
-    first_name VARCHAR(100) NOT NULL,
-    last_name VARCHAR(100) NOT NULL,
-    email VARCHAR(255) UNIQUE NOT NULL,
-    birth_date DATE,
-    phone VARCHAR(20),
-    user_type VARCHAR(50) NOT NULL 
+-- Tabela Categoria
+CREATE TABLE Categoria (
+    categoria_id SERIAL PRIMARY KEY,
+    nome VARCHAR(100) NOT NULL,
+    caminho VARCHAR(200)
 );
 
+-- Tabela Item
 CREATE TABLE Item (
     item_id SERIAL PRIMARY KEY,
-    name VARCHAR(255) NOT NULL,
-    category_id INT REFERENCES Category(category_id),
-    seller_id INT REFERENCES Customer(customer_id),
-    price DECIMAL(10,2) NOT NULL,
-    status VARCHAR(20) NOT NULL
+    nome VARCHAR(100) NOT NULL,
+    descricao TEXT,
+    preco DECIMAL(10, 2) NOT NULL,
+    status VARCHAR(50) NOT NULL,
+    data_retirada DATE,
+    categoria_id INT,
+    FOREIGN KEY (categoria_id) REFERENCES Categoria(categoria_id)
 );
 
-CREATE TABLE "Order" (
-    order_id SERIAL PRIMARY KEY,
-    buyer_id INT REFERENCES Customer(customer_id),
-    order_date DATE NOT NULL
+-- Tabela Pedido
+CREATE TABLE Pedido (
+    pedido_id SERIAL PRIMARY KEY,
+    cliente_id INT,
+    item_id INT,
+    data_pedido TIMESTAMP NOT NULL,
+    quantidade INT NOT NULL,
+    valor_total DECIMAL(10, 2) NOT NULL,
+    FOREIGN KEY (cliente_id) REFERENCES Cliente(cliente_id),
+    FOREIGN KEY (item_id) REFERENCES Item(item_id)
 );
 
-CREATE TABLE Order_Item (
-    order_item_id SERIAL PRIMARY KEY,
-    order_id INT REFERENCES "Order"(order_id),
-    item_id INT REFERENCES Item(item_id),
-    quantity INT NOT NULL,
-    unit_price DECIMAL(10,2) NOT NULL
-);
-
-CREATE TABLE Item_History (
-    history_id SERIAL PRIMARY KEY,
-    item_id INT REFERENCES Item(item_id),
-    record_date DATE NOT NULL,
-    price DECIMAL(10,2) NOT NULL,
-    status VARCHAR(20) NOT NULL,
-    UNIQUE (item_id, record_date)
+-- Tabela Item_Diario
+CREATE TABLE Item_Diario (
+    item_id INT,
+    preco DECIMAL(10, 2) NOT NULL,
+    status VARCHAR(50) NOT NULL,
+    data DATE NOT NULL,
+    PRIMARY KEY (item_id, data),
+    FOREIGN KEY (item_id) REFERENCES Item(item_id)
 );
