@@ -1,35 +1,51 @@
 --1. Listar los usuarios que cumplan años el día de hoy cuya cantidad de ventas realizadas en enero 2020 sea superior a 1500. 
-SELECT c.first_name, c.last_name, c.email
-FROM Customer c
-JOIN Item i ON c.customer_id = i.seller_id
-JOIN Order_Item oi ON i.item_id = oi.item_id
-JOIN "Order" o ON oi.order_id = o.order_id
-WHERE c.birth_date = CURRENT_DATE
-AND o.order_date BETWEEN '2020-01-01' AND '2020-01-31'
-GROUP BY c.customer_id
-HAVING SUM(oi.quantity * oi.unit_price) > 1500;
-
+SELECT 
+    c.nome, 
+    c.sobrenome, 
+    c.email
+FROM 
+    Cliente c
+JOIN 
+    Pedido p ON c.cliente_id = p.cliente_id
+WHERE 
+    EXTRACT(MONTH FROM c.data_nascimento) = EXTRACT(MONTH FROM CURRENT_DATE)
+    AND EXTRACT(DAY FROM c.data_nascimento) = EXTRACT(DAY FROM CURRENT_DATE)
+    AND EXTRACT(YEAR FROM p.data_pedido) = 2020
+    AND EXTRACT(MONTH FROM p.data_pedido) = 1
+GROUP BY 
+    c.cliente_id
+HAVING 
+    SUM(p.valor_total) > 1500;
 
 
 --2. Por cada mes del 2020, se solicita el top 5 de usuarios que más vendieron($) en la categoría Celulares. 
 --Se requiere el mes y año de análisis, nombre y apellido del vendedor, cantidad de ventas realizadas, cantidad de productos vendidos y el monto total transaccionado. 
 SELECT 
-    TO_CHAR(o.order_date, 'YYYY-MM') AS month_year,
-    c.first_name,
-    c.last_name,
-    COUNT(DISTINCT o.order_id) AS num_sales,
-    SUM(oi.quantity) AS num_products_sold,
-    SUM(oi.quantity * oi.unit_price) AS total_sales
-FROM Customer c
-JOIN Item i ON c.customer_id = i.seller_id
-JOIN Order_Item oi ON i.item_id = oi.item_id
-JOIN "Order" o ON oi.order_id = o.order_id
-JOIN Category cat ON i.category_id = cat.category_id
-WHERE cat.name = 'Celulares'
-AND o.order_date BETWEEN '2020-01-01' AND '2020-12-31'
-GROUP BY month_year, c.customer_id
-ORDER BY month_year, total_sales DESC, num_products_sold DESC
+    EXTRACT(MONTH FROM p.data_pedido) AS mes,
+    EXTRACT(YEAR FROM p.data_pedido) AS ano,
+    c.nome,
+    c.sobrenome,
+    COUNT(p.pedido_id) AS numero_vendas,
+    SUM(p.quantidade) AS numero_produtos_vendidos,
+    SUM(p.valor_total) AS valor_total_transacionado
+FROM 
+    Pedido p
+JOIN 
+    Cliente c ON p.cliente_id = c.cliente_id
+JOIN 
+    Item i ON p.item_id = i.item_id
+JOIN 
+    Categoria cat ON i.categoria_id = cat.categoria_id
+WHERE 
+    EXTRACT(YEAR FROM p.data_pedido) = 2020
+    AND cat.nome = 'Celulares'
+GROUP BY 
+    mes, ano, c.cliente_id
+ORDER BY 
+    mes, ano, valor_total_transacionado DESC
 LIMIT 5;
+
+
 
 
 
@@ -46,7 +62,7 @@ BEGIN
     SELECT
         item_id,
         CURRENT_DATE AS record_date, -- Usa a data atual
-        price,
+        preco,
         status
     FROM Item
     ON CONFLICT (item_id, record_date) DO NOTHING; -- Evita duplicatas
